@@ -83,17 +83,6 @@ stages:
         <<: *layout
         device:
           path: /dev/nvme0n1
-    - name: "network script"
-      files:
-        - path: /usr/local/bin/network_info.sh
-          permissions: 0755
-          content: |
-            #!/bin/bash
-            ip addr show
-            ping -c 4 google.com
-            ip route show
-runcmd:
-  - /usr/local/bin/network_info.sh >> /tmp/network_info
   after-install-chroot:
     - name: "Add sensitive config values"
       downloads:
