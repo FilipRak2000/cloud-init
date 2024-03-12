@@ -49,18 +49,41 @@ stages:
       name: "Conditionally partition sda"
       commands:
         - |
-          parted --script /dev/sda mkpart primary 0% 100%
-          zfs create -o mountpoint=none rpool/DATA
-          zfs create -o mountpoint=/oem rpool/DATA/COS_OEM
-          zfs create -o mountpoint=/ rpool/DATA/COS_ACTIVE
-          zfs create -o mountpoint=/recovery rpool/DATA/COS_RECOVERY
-          zfs create -o mountpoint=/state rpool/DATA/COS_STATE
-          zfs create -o mountpoint=/persistent rpool/DATA/COS_PERSISTENT
-          zfs set quota=64M rpool/DATA/COS_OEM
-          zfs set quota=8500M rpool/DATA/COS_ACTIVE
-          zfs set quota=8500M rpool/DATA/COS_RECOVERY
-          zfs set quota=18000M rpool/DATA/COS_STATE
-          zfs set quota=25000M rpool/DATA/COS_PERSISTENT
+          e2label /dev/sda "test"
+          parted --script --machine -- /dev/sda mklabel gpt
+      layout: &layout
+        device:
+          path: test
+        expand_partition:
+          size: 0 # All available space
+        add_partitions:
+          # -- All sizes bellow are in MB
+          - fsLabel: COS_OEM
+            size: 64
+            pLabel: oem
+          # -- https://github.com/kairos-io/kairos/issues/1265#issuecomment-1621433780
+          - fsLabel: COS_ACTIVE
+            size: &os-size 8500
+            pLabel: system
+          - fsLabel: COS_RECOVERY
+            size: *os-size
+            pLabel: recovery
+          - fsLabel: COS_STATE
+            size: 18000
+            pLabel: state
+          - fsLabel: COS_PERSISTENT
+            pLabel: persistent
+            size: 25000
+            filesystem: "ext4"
+    - if: "[ ! -e /dev/sda ]"
+      name: "Conditionally partition nvme0n1"
+      commands:
+        - |
+          parted --script --machine -- /dev/nvme0n1 mklabel gpt
+      layout:
+        <<: *layout
+        device:
+          path: /dev/nvme0n1
   after-install-chroot:
     - name: "Add sensitive config values"
       downloads:
@@ -197,7 +220,7 @@ stages:
         - export PATH=$PATH:/usr/local/go/bin
         - go install github.com/zcalusic/sysinfo/cmd/sysinfo@latest
         - export PATH=$PATH:$HOME/go/bin
-
+        - echo 'export PATH=$PATH:/root/go/bin' >> /etc/profile  
 
       
 
