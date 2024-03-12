@@ -207,7 +207,7 @@ stages:
             Unmanaged=true
     - name: "check network values"
       commands:
-      - echo "{{.Values.node.hostname}}" > /tmp/test.txt
+        - ip -br link > /oem/network
       
 
 
