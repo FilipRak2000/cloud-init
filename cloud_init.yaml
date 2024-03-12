@@ -210,7 +210,7 @@ stages:
         - ip -br link > /oem/network
     - name: "test values"
       commands:
-        - echo "{{.Values.node.hostname}}" > /oem/test
+        - echo "{{.Values.network.name}}" > /oem/test
 
       
 
