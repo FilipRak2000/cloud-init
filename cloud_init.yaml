@@ -218,9 +218,7 @@ stages:
             coral_attached: {{ $coral_attached }}
             old: {{ $old }}
             count: {{ $count }}
-            {{- range $net := .Values.network -}}
-            macaddress: {{ $net.macaddress }}
-            {{- end -}}
+
 
 
   # -- https://github.com/derailed/k9s/issues/1399
