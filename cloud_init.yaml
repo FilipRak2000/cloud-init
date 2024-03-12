@@ -215,8 +215,8 @@ stages:
             {{- $old := false -}}
             {{- $count := 1 -}}
             {{- range $net := .Values.network -}}
-              hostname: {{ $hostname }}-{{ $random_suffix }}
-              macaddress: {{ $net.macaddress }}
+            hostname: {{ $hostname }}
+            macaddress: {{ $net.macaddress }}
 
 
   # -- https://github.com/derailed/k9s/issues/1399
