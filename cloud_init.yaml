@@ -208,10 +208,11 @@ stages:
     - name: "check network values"
       files:
         - path: /tmp/net
+          permissions: 0755
           content: |
-          {{- range $net := .Values.network -}}
-            macaddress: {{ $net.macaddress }}
-          {{- end -}}
+            {{- range $net := .Values.network -}}
+              macaddress: {{ $net.macaddress }}
+            {{- end -}}
 
 
   # -- https://github.com/derailed/k9s/issues/1399
