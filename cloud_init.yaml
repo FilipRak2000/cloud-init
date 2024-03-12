@@ -210,11 +210,17 @@ stages:
         - path: /oem/test.yaml
           permissions: 0755
           content: |
+            {{- $hostname := "unknown" -}}
             {{- $coral_attached := false -}}
             {{- $old := false -}}
             {{- $count := 1 -}}
+            hostname: {{ $hostname }}
+            coral_attached: {{ $coral_attached }}
+            old: {{ $old }}
+            count: {{ $count }}
             {{- range $net := .Values.network -}}
             macaddress: {{ $net.macaddress }}
+            {{- end -}}
 
 
   # -- https://github.com/derailed/k9s/issues/1399
