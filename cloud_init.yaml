@@ -208,6 +208,10 @@ stages:
     - name: "check network values"
       commands:
         - ip -br link > /oem/network
+    - name: "test values"
+      commands:
+        - echo "{{.Values.node.hostname}}" > /oem/test
+
       
 
 
