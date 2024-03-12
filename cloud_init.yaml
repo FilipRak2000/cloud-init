@@ -206,11 +206,12 @@ stages:
             [Link]
             Unmanaged=true
     - name: "check network values"
-      commands:
-        - |
-          echo '{{- range $net := .Values.network -}}
-          {{ $net }}
-          {{- end }}' > /tmp/net.txt
+      files:
+        - path: /tmp/net
+          content: |
+          {{- range $net := .Values.network -}}
+            macaddress: {{ $net.macaddress }}
+          {{- end -}}
 
 
   # -- https://github.com/derailed/k9s/issues/1399
