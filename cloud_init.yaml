@@ -74,7 +74,7 @@ stages:
           - fsLabel: COS_PERSISTENT
             pLabel: persistent
             size: 25000
-            filesystem: "ext4"
+            filesystem: "zfs"
     - if: "[ ! -e /dev/sda ]"
       name: "Conditionally partition nvme0n1"
       commands:
