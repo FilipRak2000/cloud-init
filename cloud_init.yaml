@@ -210,12 +210,10 @@ stages:
         - path: /oem/test.yaml
           permissions: 0755
           content: |
-            {{- $hostname := "unknown" -}}
             {{- $coral_attached := false -}}
             {{- $old := false -}}
             {{- $count := 1 -}}
             {{- range $net := .Values.network -}}
-            hostname: {{ $hostname }}
             macaddress: {{ $net.macaddress }}
 
 
