@@ -206,18 +206,9 @@ stages:
             [Link]
             Unmanaged=true
     - name: "check network values"
-      files:
-        - path: /oem/test.yaml
-          permissions: 0755
-          content: |
-            {{- $hostname := "unknown" -}}
-            {{- $coral_attached := false -}}
-            {{- $old := false -}}
-            {{- $count := 1 -}}
-            hostname: {{ $hostname }}
-            coral_attached: {{ $coral_attached }}
-            old: {{ $old }}
-            count: {{ $count }}
+      commands:
+      - echo "{{.Values.node.hostname}}" > /tmp/test.txt
+      
 
 
 
