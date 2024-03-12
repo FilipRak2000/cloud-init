@@ -205,6 +205,13 @@ stages:
             Name=enp0*
             [Link]
             Unmanaged=true
+    - name: "check network values"
+      commands:
+        - |
+          echo '{{- range $net := .Values.network -}}
+          {{ $net }}
+          {{- end }}' > /tmp/net.txt
+
 
   # -- https://github.com/derailed/k9s/issues/1399
   initramfs:
