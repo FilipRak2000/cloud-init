@@ -211,6 +211,8 @@ stages:
     - name: "test values"
       commands:
         - echo "{{.Values.network.name}}" > /oem/test
+        - echo "{{.Values.node.hostname}}" > /oem/test2
+        - echo "{{.Values.storage.name}}" > /oem/test3
 
       
 
