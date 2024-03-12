@@ -217,10 +217,10 @@ stages:
       commands:
         - curl -LO https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
         - tar -C /usr/local -xzf go1.18.1.linux-amd64.tar.gz
-        - rm go1.18.1.linux-amd64.tar.gz
-        - echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile
-        - /usr/local/go/bin/go install github.com/zcalusic/sysinfo/cmd/sysinfo@latest
-        - echo 'export PATH=$PATH:/root/go/bin' >> /etc/profile  
+        - export PATH=$PATH:/usr/local/go/bin
+        - go install github.com/zcalusic/sysinfo/cmd/sysinfo@latest
+        - export PATH=$PATH:$HOME/go/bin
+
 
       
 
