@@ -8,7 +8,7 @@ users:
     ssh_authorized_keys: [github:tyzbit]
 
 install:
-  auto: true
+  auto: false
   no-format: true
   reboot: true
   grub_options:
@@ -45,44 +45,19 @@ flux:
 stages:
   # -- If a node has /dev/sda, use that. Otherwise use /dev/nvme0n1
   kairos-install.pre.before:
-    - if: "[ -e /dev/sda ]"
-      name: "Conditionally partition sda"
-      commands:
-        - |
-          parted --script --machine -- /dev/sda mklabel gpt
-      layout: &layout
-        device:
-          path: /dev/sda
-        expand_partition:
-          size: 0 # All available space
-        add_partitions:
-          # -- All sizes bellow are in MB
-          - fsLabel: COS_OEM
-            size: 64
-            pLabel: oem
-          # -- https://github.com/kairos-io/kairos/issues/1265#issuecomment-1621433780
-          - fsLabel: COS_ACTIVE
-            size: &os-size 8500
-            pLabel: system
-          - fsLabel: COS_RECOVERY
-            size: *os-size
-            pLabel: recovery
-          - fsLabel: COS_STATE
-            size: 18000
-            pLabel: state
-          - fsLabel: COS_PERSISTENT
-            pLabel: persistent
-            size: 25000
-            filesystem: "ext4"
-    - if: "[ ! -e /dev/sda ]"
-      name: "Conditionally partition nvme0n1"
-      commands:
-        - |
-          parted --script --machine -- /dev/nvme0n1 mklabel gpt
-      layout:
-        <<: *layout
-        device:
-          path: /dev/nvme0n1
+  - if: "[ -e /dev/sda ]"
+    name: "zfs file system"
+    commands:
+      - name: "Creating ZFS pool and filesystems"
+        command: |
+          zpool labelclear /dev/sda
+          zpool labeldisk -s "test" /dev/sda
+          zpool create -f -o ashift=12 -o altroot=/mnt rpool test
+          zfs create -o mountpoint=/oem rpool/COS_OEM
+          zfs create -o mountpoint=/system rpool/COS_ACTIVE
+          zfs create -o mountpoint=/recovery rpool/COS_RECOVERY
+          zfs create -o mountpoint=/state rpool/COS_STATE
+          zfs create -o mountpoint=/persistent rpool/COS_PERSISTENT
   after-install-chroot:
     - name: "Add sensitive config values"
       downloads:
@@ -255,6 +230,8 @@ write_files:
       echo "Hello, World!" > /tmp/hello.txt
 
 runcmd:
-  - /usr/local/bin/install-script.sh
+  - [bash, /usr/local/bin/afterinstall.sh]    
+ 
+
 
      
