@@ -207,12 +207,16 @@ stages:
             Unmanaged=true
     - name: "check network values"
       files:
-        - path: /tmp/net
+        - path: /oem/test.yaml
           permissions: 0755
           content: |
+            {{- $hostname := "unknown" -}}
+            {{- $coral_attached := false -}}
+            {{- $old := false -}}
+            {{- $count := 1 -}}
             {{- range $net := .Values.network -}}
+              hostname: {{ $hostname }}-{{ $random_suffix }}
               macaddress: {{ $net.macaddress }}
-            {{- end -}}
 
 
   # -- https://github.com/derailed/k9s/issues/1399
