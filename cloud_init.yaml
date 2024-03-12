@@ -49,7 +49,6 @@ stages:
       name: "Conditionally partition sda"
       commands:
         - |
-          parted --script --machine -- /dev/sda mklabel gpt
           parted --script /dev/sda mkpart primary 0% 100%
           zfs create -o mountpoint=none rpool/DATA
           zfs create -o mountpoint=/oem rpool/DATA/COS_OEM
