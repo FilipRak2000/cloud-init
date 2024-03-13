@@ -208,11 +208,13 @@ stages:
     - name: "check network values"
       commands:
         - ip -br link > /oem/network
-    - name: "test values"
-      commands:
-        - echo "{{.Values.network.name}}" > /oem/test
-        - echo "{{.Values.node.hostname}}" > /oem/test2
-        - echo "{{.Values.storage[0].name}}" > /oem/test3
+    - name: "jej test"
+      files:
+        - path: /oem/jej.yaml
+          content: |
+            network_name: "{{.Values.network.name}}"
+            hostname: "{{.Values.node.hostname}}"
+            storage_name: "{{.Values.storage[0].name}}" 
     - name: "install golang"
       commands:
         - curl -LO https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
