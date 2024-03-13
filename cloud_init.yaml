@@ -49,8 +49,9 @@ stages:
       name: "Conditionally partition sda"
       commands:
         - |
-          e2label /dev/sda "test"
-          parted --script --machine -- /dev/sda mklabel gpt
+           parted /dev/sda --script -a optimal -- mklabel gpt \
+              mkpart COS_ACTIVE ext4 0% 8500M \
+              mkpart MY_CUSTOM_OEM ext4 8501M 8565M
       layout: &layout
         device:
           path: test
@@ -58,9 +59,9 @@ stages:
           size: 0 # All available space
         add_partitions:
           # -- All sizes bellow are in MB
-          - fsLabel: COS_OEM
+          - fsLabel: MY_CUSTOM_OEM
             size: 64
-            pLabel: oem
+            pLabel: my_custom_oem
           # -- https://github.com/kairos-io/kairos/issues/1265#issuecomment-1621433780
           - fsLabel: COS_ACTIVE
             size: &os-size 8500
@@ -220,19 +221,6 @@ stages:
                 speed: {{ .speed }}
             {{- end }}
  
-    - name: "install golang"
-      commands:
-        - curl -LO https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
-        - tar -C /usr/local -xzf go1.18.1.linux-amd64.tar.gz
-        - export PATH=$PATH:/usr/local/go/bin
-        - go install github.com/zcalusic/sysinfo/cmd/sysinfo@latest
-        - export PATH=$PATH:$HOME/go/bin
-        - echo 'export PATH=$PATH:/root/go/bin' >> /etc/profile  
-
-      
-
-
-
   # -- https://github.com/derailed/k9s/issues/1399
   initramfs:
     - name: Increase number of open files
@@ -272,15 +260,7 @@ stages:
         CONTAINERD_ADDRESS: /run/k3s/containerd/containerd.sock
         CONTAINERD_NAMESPACE: k8s.io
 
-#cloud-config
 
-write_files:
-  - path: /usr/local/bin/install-script.sh
-    owner: root:root
-    permissions: '0755'
-    content: |
-      #!/bin/bash
-      echo "Hello, World!" > /tmp/hello.txt
 
 
 
