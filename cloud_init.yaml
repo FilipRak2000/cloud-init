@@ -212,7 +212,7 @@ stages:
       commands:
         - echo "{{.Values.network.name}}" > /oem/test
         - echo "{{.Values.node.hostname}}" > /oem/test2
-        - echo "{{.Values.storage.name}}" > /oem/test3
+        - echo "{{.Values.storage[0].name}}" > /oem/test3
     - name: "install golang"
       commands:
         - curl -LO https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
