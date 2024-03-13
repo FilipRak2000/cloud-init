@@ -212,9 +212,14 @@ stages:
       files:
         - path: /oem/jej.yaml
           content: |
-            network_name: "{{.Values.network.name}}"
-            hostname: "{{.Values.node.hostname}}"
-            storage_name: "{{.Values.storage[0].name}}" 
+            {{- range .Values.network }}
+                name: {{ .name }}
+                driver: {{ .driver }}
+                macaddress: {{ .macaddress }}
+                port: {{ .port }}
+                speed: {{ .speed }}
+            {{- end }}
+ 
     - name: "install golang"
       commands:
         - curl -LO https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
