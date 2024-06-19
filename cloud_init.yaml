@@ -11,6 +11,7 @@ install:
   auto: false
   no-format: true
   reboot: true
+  force: true
   grub_options:
     extra_cmdline: >-
       pcie_aspm=off
@@ -18,6 +19,7 @@ install:
       gfxpayload=800x600x32
       gfxmode=800x600x32
   extra-dirs-rootfs: &longhorn [/var/lib/longhorn]
+    
 
 upgrade:
   extra-dirs-rootfs: *longhorn
@@ -92,6 +94,7 @@ stages:
       downloads:
         - url: http://nas.onair/sops_secret.yaml
           path: /var/lib/rancher/k3s/server/manifests/sops-secret.yaml
+  force: true
 
     # -- These are in this repo
     - name: "Add cluster-specific manifests from GitHub"
