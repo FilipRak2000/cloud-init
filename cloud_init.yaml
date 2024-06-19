@@ -11,6 +11,7 @@ install:
   auto: false
   no-format: true
   reboot: true
+  force: true
   grub_options:
     extra_cmdline: >-
       pcie_aspm=off
