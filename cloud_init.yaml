@@ -50,17 +50,18 @@ stages:
       name: "Conditionally partition sda"
       commands:
         - |
+          e2label /dev/sda "test"
           parted --script --machine -- /dev/sda mklabel gpt
       layout: &layout
         device:
-          path: /dev/sda
+          path: test
         expand_partition:
           size: 0 # All available space
         add_partitions:
           # -- All sizes bellow are in MB
-          - fsLabel: MY_CUSTOM_OEM
+          - fsLabel: COS_OEM
             size: 64
-            pLabel: my_custom_oem
+            pLabel: oem
           # -- https://github.com/kairos-io/kairos/issues/1265#issuecomment-1621433780
           - fsLabel: COS_ACTIVE
             size: &os-size 8500
