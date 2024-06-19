@@ -49,12 +49,10 @@ stages:
       name: "Conditionally partition sda"
       commands:
         - |
-           parted /dev/sda --script -a optimal -- mklabel gpt \
-              mkpart COS_ACTIVE ext4 0% 8500M \
-              mkpart MY_CUSTOM_OEM ext4 8501M 8565M
+          parted --script --machine -- /dev/sda mklabel gpt
       layout: &layout
         device:
-          path: test
+          path: /dev/sda
         expand_partition:
           size: 0 # All available space
         add_partitions:
