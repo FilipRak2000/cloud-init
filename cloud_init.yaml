@@ -49,10 +49,11 @@ stages:
       name: "Conditionally partition sda"
       commands:
         - |
+          e2label /dev/sda "test"
           parted --script --machine -- /dev/sda mklabel gpt
       layout: &layout
         device:
-          path: /dev/sda
+          path: test
         expand_partition:
           size: 0 # All available space
         add_partitions:
