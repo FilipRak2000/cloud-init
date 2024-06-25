@@ -4,16 +4,13 @@ users:
   - name: tyzbit
     shell: /bin/bash
     groups: [admin]
-    ssh_authorized_keys:
-      - github:tyzbit
+    ssh_authorized_keys: [github:tyzbit]
 
-# Instalacja i reboot
 install:
   auto: true
   no-format: false
   reboot: true
 
-# Opcje dodatkowe dla Gruba
 grub_options:
   extra_cmdline: >-
     pcie_aspm=off
@@ -21,16 +18,15 @@ grub_options:
     gfxpayload=800x600x32
     gfxmode=800x600x32
 
-# Dodatkowe katalogi w rootfs przy upgrade i reset
+extra-dirs-rootfs: &longhorn [/var/lib/longhorn]
+
 upgrade:
-  extra-dirs-rootfs: [/var/lib/longhorn]
+  extra-dirs-rootfs: *longhorn
 
 reset:
-  extra-dirs-rootfs: [/var/lib/longhorn]
+  extra-dirs-rootfs: *longhorn
 
-# Konfiguracja Kubernetes i Flux
-kubevip:
-  enabled: false
+kubevip: { enabled: false }
 
 flux:
   github:
@@ -40,70 +36,38 @@ flux:
     components-extra: image-reflector-controller,image-automation-controller
     network-policy: "false"
 
-# Stages dla partycjonowania i instalacji na ZFS
 stages:
   kairos-install.pre.before:
     - if: "[ -e /dev/sda ]"
       name: "Conditionally partition sda"
       commands:
-        - |
-          e2label /dev/sda "test"
-          parted --script --machine -- /dev/sda mklabel gpt
-          parted --script --machine -- /dev/sda mkpart primary ext4 1MiB 64MiB
-          parted --script --machine -- /dev/sda mkpart primary ext4 64MiB 8564MiB
-          parted --script --machine -- /dev/sda mkpart primary ext4 8564MiB 28564MiB
-          parted --script --machine -- /dev/sda mkpart primary ext4 28564MiB 46564MiB
-          parted --script --machine -- /dev/sda mkpart primary ext4 46564MiB 71564MiB
-          parted --script --machine -- /dev/sda mkpart primary ext4 71564MiB 96564MiB
-      layout: &layout
-        device:
-          path: test
-        expand_partition:
-          size: 0 # All available space
-      add_partitions:
-        # -- All sizes below are in MB
-        - fsLabel: COS_OEM
-          size: 64
-          pLabel: oem
-        - fsLabel: COS_ACTIVE
-          size: &os-size 8500
-          pLabel: system
-        - fsLabel: COS_RECOVERY
-          size: *os-size
-          pLabel: recovery
-        - fsLabel: COS_STATE
-          size: 18000
-          pLabel: state
-        - fsLabel: COS_PERSISTENT
-          size: 25000
-          filesystem: "ext4"
+        - e2label /dev/sda "test"
+        - parted --script --machine -- /dev/sda mklabel gpt
+        - parted --script --machine -- /dev/sda mkpart primary zfs 1MiB 100%
+        - zpool create -f -o ashift=12 rpool /dev/sda
+        - zfs create -o mountpoint=none rpool/ROOT
+        - zfs create -o mountpoint=/ rpool/ROOT/debian
+        - zpool set bootfs=rpool/ROOT/debian rpool
 
     - if: "[ ! -e /dev/sda ]"
       name: "Conditionally partition nvme0n1"
       commands:
         - parted --script --machine -- /dev/nvme0n1 mklabel gpt
-      layout:
-        <<: *layout
-        device:
-          path: /dev/nvme0n1
+        - parted --script --machine -- /dev/nvme0n1 mkpart primary zfs 1MiB 100%
+        - zpool create -f -o ashift=12 rpool /dev/nvme0n1
+        - zfs create -o mountpoint=none rpool/ROOT
+        - zfs create -o mountpoint=/ rpool/ROOT/debian
+        - zpool set bootfs=rpool/ROOT/debian rpool
 
   after-install-chroot:
     - name: "Install ZFS utils"
       packages:
         - zfsutils-linux
 
-    - name: "Create ZFS pool and filesystem"
-      commands:
-        - zpool create -f -o ashift=12 rpool /dev/sda
-        - zfs create -o mountpoint=none rpool/ROOT
-        - zfs create -o mountpoint=/ rpool/ROOT/debian
-        - zpool set bootfs=rpool/ROOT/debian rpool
-
     - name: "Mount ZFS filesystem"
       mounts:
         - [rpool/ROOT/debian, /]
 
-    # Dodatkowe konfiguracje po instalacji
     - name: "Add sensitive config values"
       downloads:
         - url: http://nas.onair/sensitive_configs.yaml
@@ -122,35 +86,8 @@ stages:
         - url: https://raw.githubusercontent.com/tyzbit/kairos-config/main/clusters/corpus/manifests/kubelet-config.yaml
           path: /etc/rancher/k3s/kubelet-config.yaml
 
-    - name: "Set up kube environment variables"
+    - name: "Set up various kube environment variables"
       environment:
         KUBECONFIG: /etc/rancher/k3s/k3s.yaml
         CONTAINERD_ADDRESS: /run/k3s/containerd/containerd.sock
         CONTAINERD_NAMESPACE: k8s.io
-
-    - name: "Disable onboard network if add-on card is present"
-      if: lspci | grep Ethernet | grep -qv Aquantia
-      files:
-        - path: /etc/systemd/network/10-disable-onboard.network
-          permissions: 0644
-          content: |
-            [Match]
-            Name=enp0*
-            [Link]
-            Unmanaged=true
-
-    - name: "Check network values"
-      commands:
-        - ip -br link > /oem/network
-
-    - name: "Save network details"
-      files:
-        - path: /oem/network_details.yaml
-          content: |
-            {{- range .Values.network }}
-              name: {{ .name }}
-              driver: {{ .driver }}
-              macaddress: {{ .macaddress }}
-              port: {{ .port }}
-              speed: {{ .speed }}
-            {{- end }}
