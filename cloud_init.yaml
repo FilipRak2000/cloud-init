@@ -49,27 +49,35 @@ stages:
         - |
           e2label /dev/sda "test"
           parted --script --machine -- /dev/sda mklabel gpt
+          parted --script --machine -- /dev/sda mkpart primary ext4 1MiB 64MiB
+          parted --script --machine -- /dev/sda mkpart primary ext4 64MiB 8564MiB
+          parted --script --machine -- /dev/sda mkpart primary ext4 8564MiB 28564MiB
+          parted --script --machine -- /dev/sda mkpart primary ext4 28564MiB 46564MiB
+          parted --script --machine -- /dev/sda mkpart primary ext4 46564MiB 71564MiB
+          parted --script --machine -- /dev/sda mkpart primary ext4 71564MiB 96564MiB
       layout: &layout
         device:
           path: test
         expand_partition:
-          size: 0
-        add_partitions:
-          - fsLabel: COS_OEM
-            size: 64
-            pLabel: oem
-          - fsLabel: COS_ACTIVE
-            size: &os-size 8500
-            pLabel: system
-          - fsLabel: COS_RECOVERY
-            size: *os-size
-            pLabel: recovery
-          - fsLabel: COS_STATE
-            size: 18000
-            pLabel: state
-          - fsLabel: COS_PERSISTENT
-            size: 25000
-            filesystem: "ext4"
+          size: 0 # All available space
+      add_partitions:
+        # -- All sizes below are in MB
+        - fsLabel: COS_OEM
+          size: 64
+          pLabel: oem
+        - fsLabel: COS_ACTIVE
+          size: &os-size 8500
+          pLabel: system
+        - fsLabel: COS_RECOVERY
+          size: *os-size
+          pLabel: recovery
+        - fsLabel: COS_STATE
+          size: 18000
+          pLabel: state
+        - fsLabel: COS_PERSISTENT
+          size: 25000
+          filesystem: "ext4"
+
     - if: "[ ! -e /dev/sda ]"
       name: "Conditionally partition nvme0n1"
       commands:
