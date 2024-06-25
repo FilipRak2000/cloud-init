@@ -9,7 +9,7 @@ users:
 
 install:
   auto: true
-  no-format: true
+  no-format: false
   reboot: true
   grub_options:
     extra_cmdline: >-
