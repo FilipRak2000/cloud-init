@@ -86,7 +86,7 @@ stages:
 
     - name: "Create ZFS pool and filesystem"
       commands:
-        - zpool create -f -o ashift=12 rpool /dev/sda1
+        - zpool create -f -o ashift=12 rpool /dev/sda
         - zfs create -o mountpoint=none rpool/ROOT
         - zfs create -o mountpoint=/ rpool/ROOT/debian
         - zpool set bootfs=rpool/ROOT/debian rpool
