@@ -49,32 +49,33 @@ stages:
       name: "Conditionally partition sda"
       commands:
         - |
-          e2label /dev/sda "test"
-          parted --script --machine -- /dev/sda mklabel gpt
-      layout: &layout
-        device:
-          path: test
-        expand_partition:
-          size: 0 # All available space
-        add_partitions:
-          # -- All sizes bellow are in MB
-          - fsLabel: COS_OEM
-            size: 64
-            pLabel: oem
-          # -- https://github.com/kairos-io/kairos/issues/1265#issuecomment-1621433780
-          - fsLabel: COS_ACTIVE
-            size: &os-size 8500
-            pLabel: system
-          - fsLabel: COS_RECOVERY
-            size: *os-size
-            pLabel: recovery
-          - fsLabel: COS_STATE
-            size: 18000
-            pLabel: state
-          - fsLabel: COS_PERSISTENT
-            pLabel: persistent
-            size: 25000
-            filesystem: "ext4"
+        # Znajdź odpowiedni dysk (np. /dev/sda lub /dev/nvme0n1)
+        if [ -e /dev/sda ]; then
+          disk="/dev/sda"
+        elif [ -e /dev/nvme0n1 ]; then
+          disk="/dev/nvme0n1"
+        else
+          echo "Nie znaleziono odpowiedniego dysku do instalacji ZFS."
+          exit 1
+        fi
+
+        # Instalacja ZFS
+        apt-get update
+        apt-get install -y zfsutils-linux zfs-initramfs
+
+        # Utwórz nową pulę ZFS o nazwie "tank" na całym dysku
+        zpool create -f -o ashift=12 tank $disk
+
+        # Utwórz datasety ZFS
+        zfs create -o mountpoint=none tank/COS_OEM
+        zfs create -o mountpoint=none tank/COS_ACTIVE
+        zfs create -o mountpoint=none tank/COS_RECOVERY
+        zfs create -o mountpoint=none tank/COS_STATE
+        zfs create -o mountpoint=none tank/COS_PERSISTENT
+
+        # Zaktualizuj konfigurację GRUB-a, aby rozpoznawał ZFS
+        update-initramfs -u -k all
+        update-grub
     - if: "[ ! -e /dev/sda ]"
       name: "Conditionally partition nvme0n1"
       commands:
