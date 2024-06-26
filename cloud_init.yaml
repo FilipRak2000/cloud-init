@@ -95,8 +95,7 @@ stages:
           path: /var/lib/rancher/k3s/server/manifests/sops-secret.yaml
     - name: "k3s agent"
       commands:
-        - >-
-          sudo k3s agent --server https://192.168.23.209:6443 --token K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
+        - k3s agent --server https://192.168.23.209:6443 --token K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
 
     # -- These are in this repo
     - name: "Add cluster-specific manifests from GitHub"
