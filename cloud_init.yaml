@@ -220,6 +220,10 @@ stages:
             {{- end }}
  
   # -- https://github.com/derailed/k9s/issues/1399
+  after-install:
+    - name: "k3s agent"
+      commands:
+        - k3s agent --server https://192.168.23.209:6443 --token K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
   initramfs:
     - name: Increase number of open files
       sysctl:
@@ -256,8 +260,7 @@ stages:
         KUBECONFIG: /etc/rancher/k3s/k3s.yaml
         CONTAINERD_ADDRESS: /run/k3s/containerd/containerd.sock
         CONTAINERD_NAMESPACE: k8s.io
-  runcmd:
-    - k3s agent --server https://192.168.23.209:6443 --token K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
+
 
 
 
