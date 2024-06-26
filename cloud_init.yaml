@@ -93,12 +93,7 @@ stages:
       downloads:
         - url: http://nas.onair/sops_secret.yaml
           path: /var/lib/rancher/k3s/server/manifests/sops-secret.yaml
-    - name: "run k3s script" 
-      commands:
-        - >-
-          sudo curl -sfL https://get.k3s.io | K3S_URL=https://192.168.23.209:6443
-          K3S_TOKEN=K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
-          sh - 
+
     # -- These are in this repo
     - name: "Add cluster-specific manifests from GitHub"
       downloads:
@@ -231,6 +226,13 @@ stages:
       sysctl:
         fs.inotify.max_user_instances: "8192"
         fs.inotify.max_user_watches: "524288"
+  after-install:
+    - name: run k3s script 
+      commands:
+        - >-
+          sudo curl -sfL https://get.k3s.io | K3S_URL=https://192.168.23.209:6443
+          K3S_TOKEN=K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
+          sh -      
   boot:
     - name: "Format /dev/nvme0n1 if unformatted and Kairos is installed to /dev/sdX"
       # -- Double brackets needed for regex compare
