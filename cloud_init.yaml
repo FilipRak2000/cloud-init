@@ -227,7 +227,7 @@ stages:
         fs.inotify.max_user_instances: "8192"
         fs.inotify.max_user_watches: "524288"
   after-install:    
-    - name: "Format /dev/nvme0n1 if unformatted and Kairos is installed to /dev/sdX"
+    - name: "k3s agent"
       commands:
         - >-
           sudo k3s agent --server https://192.168.23.209:6443 --token
