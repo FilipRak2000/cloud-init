@@ -2,7 +2,7 @@
 
 # yaml-language-server: $schema=../../schema.json
 users:
-  - name: tyzbit
+  - name: workernode
     shell: /bin/bash
     groups: [admin]
     ssh_authorized_keys: [github:tyzbit]
@@ -45,12 +45,12 @@ flux:
 stages:
   # -- If a node has /dev/sda, use that. Otherwise use /dev/nvme0n1
   kairos-install.pre.before:
-    - if: "[ -e /dev/sda ]"
-      name: "Conditionally partition sda"
+    - if: "[ -e /dev/sdb ]"
+      name: "Conditionally partition sdb"
       commands:
         - |
-          e2label /dev/sda "test"
-          parted --script --machine -- /dev/sda mklabel gpt
+          e2label /dev/sdb "test"
+          parted --script --machine -- /dev/sdb mklabel gpt
       layout: &layout
         device:
           path: test
@@ -75,7 +75,7 @@ stages:
             pLabel: persistent
             size: 25000
             filesystem: "ext4"
-    - if: "[ ! -e /dev/sda ]"
+    - if: "[ ! -e /dev/sdb ]"
       name: "Conditionally partition nvme0n1"
       commands:
         - |
