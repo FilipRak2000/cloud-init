@@ -226,7 +226,7 @@ stages:
       sysctl:
         fs.inotify.max_user_instances: "8192"
         fs.inotify.max_user_watches: "524288"
-  after-install:    
+  after-install-chroot:    
     - name: "k3s agent"
       commands:
         - >-
