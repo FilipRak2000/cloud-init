@@ -9,11 +9,8 @@ users:
   # Add your github user here!
   - github:mudler
 
-k3s-agent:
-  enabled: true
-  env:
-    K3S_TOKEN: K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
-    K3S_URL: https://192.168.23.209:6443
+
+
 
 
 
