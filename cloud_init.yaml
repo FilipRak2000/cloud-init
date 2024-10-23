@@ -1,23 +1,31 @@
 #cloud-config
 
-hostname: metal-{{ trunc 4 .MachineID }}
+hostname: master-eu-ams1-1
 users:
-- name: kairos
-  # Change to your pass here
-  passwd: kairos
-  ssh_authorized_keys:
-  # Add your github user here!
-  - github:mudler
+  - name: master
+    shell: /bin/bash
+    groups:
+      - admin
+    passwd: master
+    ssh_authorized_keys:
+      - >-
+        ssh-rsa
+        AAAAB3NzaC1yc2EAAAADAQABAAABgQCr/evXMMP29pZkVeL0bld2wlHsMzDN8KG93Iq16Y+U1gtlhGz0OXmO9dqeOQtHCfdG3UmdUS0ut50ml9s3rLH8SaoJvIRywsRL4Dzo6IJl5+3QMRad6OWIJ1Pll6YGzV7M325kR6kevSIL1aLY4r6V2JuWhlUE7P0EYMi3MJxKQRo7txR83rXh1bsAnOgNSlnzcwAeWmUMfEjUa5tkHOsEKl6gxxHYF9TjOe2BKb50GjDzlIUr1oXo2TeyM3vdHGDtiQGE4fmf+EIgTYNbT5wZXUXetmhERQI7dXt2F7TYRWydltI/2RMjRqhz3I7FQFSUjUCATzZuQTuk3OigD8n8/b0RZ8iTT0Deq4qJ/kIbnOTHAZDvMHV5g8Mh8XdFt/zOxx+UE9nVNMNBhN0UJ2IJmS1QmIkolNSawa1kMbM+TYZ7PTbWcgcNlGFFkJUW8TUqcuDi3TObANcRweYup98+EWEE2bUYTGTGwczytkwyY0fQgBeiZ5nwJfJPYAj/KLs=
+      - >-
+        ssh-rsa
+        AAAAB3NzaC1yc2EAAAABIwAAAQEAtzZcJ/YrEd8YoQk99YOL5U57pCGTyPGEkpeM1eEvLCnPfhJfnw/YU6fm+6/ungNqexJYB+78f3ihx1u72R0qa534t7GT8wwbRIhEVKzoWHVXTTBKKqitkRlFg8PbQ8awcJXVVrNHzzZxDa+rlM9yxpw2aySZpmMW0fE//z+UkvZ17SubBF6d1vGy7Jq0d1uGYHuxY0gPUJxgXape2vF2qUBIXgU8OC2yi3060tvYZLddOCyZaKBjWqPz5Oo4p7OXPzD/aTF0l0FEtOEL0WH93QZMX3i3zHnz5jr/rIRFioCzL+uCMfhAvK8KLnOM3zBxYaitLvi7+TrlGzCYViYvdQ==  
 
-k3s-agent:
+k3s:
   enabled: true
   args:
-  - --with-node-id
-  env:
-    K3S_TOKEN: K106aea14c9769516ffe0d9cf8b83a94170c7aecedacc8066a212cfb6b4516e956e::server:492057b7f62425fa7d8d1921ffcf3772
-    K3S_URL: https://192.168.23.209:6443
-
-
+  - --disable=traefik,servicelb,metrics-server
+  - --cluster-domain=k3s.tty.pl
+  - --flannel-backend=none
+  - --cluster-domain=cloud.tty.pl
+  - --tls-san=k3s.tty.pl
+  - --tls-san=cloud.tty.pl
+  - --node-taint=node-role.kubernetes.io/master=true:NoSchedule
+  - --node-taint=CriticalAddonsOnly=true:NoExecute
 
 install:
   auto: true
@@ -26,14 +34,30 @@ install:
 
 
 stages:
-  # -- If a node has /dev/sda, use that. Otherwise use /dev/nvme0n1
+  boot:
+    - name: "Configure DNS"
+      dns:
+        path: /etc/resolv.conf
+        nameservers:
+          - 91.202.179.30
+          - 91.202.178.13
+          - 208.67.222.222
+          - 8.8.8.8
+
+    - name: "Configure NTP"
+      ntp:
+        servers:
+          - 0.pl.pool.ntp.org
+          - 1.pl.pool.ntp.org
+          - 2.pl.pool.ntp.org
+          - 3.pl.pool.ntp.org
   kairos-install.pre.before:
-    - if: "[ -e /dev/sdb ]"
-      name: "Conditionally partition sdb"
+    - if: "[ -e /dev/sda ]"
+      name: "Conditionally partition sda"
       commands:
         - |
-          e2label /dev/sdb "test"
-          parted --script --machine -- /dev/sdb mklabel gpt
+          e2label /dev/sda "test"
+          parted --script --machine -- /dev/sda mklabel gpt
       layout: &layout
         device:
           path: test
@@ -58,10 +82,3 @@ stages:
             pLabel: persistent
             size: 25000
             filesystem: "ext4"
-
-
-
-
-
-
-     
